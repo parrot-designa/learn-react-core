@@ -198,6 +198,9 @@ function getRollupOutputOptions(
     interop: false,
     name: globalName,
     sourcemap: true,
+    sourcemapPathTransform(relativeSourcePath) {
+      return relativeSourcePath.replace('../../../../packages', '/Users/wjb/Desktop/learn/child/react/packages')
+    },
     esModule: false,
   };
 }

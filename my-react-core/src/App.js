@@ -8,7 +8,7 @@ function App() {
 
   return (
     <div className="App">
-
+      谢谢
     </div>
   );
 }

@@ -1,16 +1,10 @@
-
 import { useState } from "react";
-import './App.css';
+import "./App.css";
 
 function App() {
+  const [a, setA] = useState("b");
 
-  const [a, setA] = useState('b');
-
-  return (
-    <div className="App">
-
-    </div>
-  );
+  return <div className="App">谢谢</div>;
 }
 
 export default App;

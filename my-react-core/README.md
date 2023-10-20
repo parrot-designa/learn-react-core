@@ -1,39 +1,38 @@
-# 1.入口文件中的render
+# 1.入口文件中的 render
 
 ```js
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 
-root.render(<div>谢谢</div>)
+root.render(<div>谢谢</div>);
 ```
 
 # 2.react-dom/src/client/ReactDOMRoot.js
 
-因为上面的root是一个ReactDOMRoot实例，所以调用下面的render方法，然后调用了updateContainer方法。
+因为上面的 root 是一个 ReactDOMRoot 实例，所以调用下面的 render 方法，然后调用了 updateContainer 方法。
 
 ```js
-ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render = function(
-  children: ReactNodeList,
-): void {
-  const root = this._internalRoot;
-  if (root === null) {
-    throw new Error('Cannot update an unmounted root.');
-  }
- 
-  updateContainer(children, root, null, null);
-};
+ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render =
+  function (children: ReactNodeList): void {
+    const root = this._internalRoot;
+    if (root === null) {
+      throw new Error("Cannot update an unmounted root.");
+    }
+
+    updateContainer(children, root, null, null);
+  };
 ```
 
 # 3.react-reconciler/src/ReactFiberReconciler.old.js
 
-初次渲染，这里的element是节点，container为ReactDOMRoot实例上的_internalRoot属性，这个属性是FiberRootNode实例
+初次渲染，这里的 element 是节点，container 为 ReactDOMRoot 实例上的\_internalRoot 属性，这个属性是 FiberRootNode 实例
 
 ```js
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
   parentComponent: ?React$Component<any, any>,
-  callback: ?Function,
-): Lane { 
+  callback: ?Function
+): Lane {
   //container.current为FiberNode实例
   const current = container.current;
   //获取当前的时间
@@ -51,20 +50,20 @@ export function updateContainer(
   } else {
     container.pendingContext = context;
   }
- 
+
   const update = createUpdate(eventTime, lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
-  update.payload = {element};
+  update.payload = { element };
 
   callback = callback === undefined ? null : callback;
   if (callback !== null) {
     if (__DEV__) {
-      if (typeof callback !== 'function') {
+      if (typeof callback !== "function") {
         console.error(
-          'render(...): Expected the last optional `callback` argument to be a ' +
-            'function. Instead received: %s.',
-          callback,
+          "render(...): Expected the last optional `callback` argument to be a " +
+            "function. Instead received: %s.",
+          callback
         );
       }
     }
@@ -79,7 +78,7 @@ export function updateContainer(
 
   return lane;
 }
-//requestEventTime 
+//requestEventTime
 export function requestEventTime() {
   if ((executionContext & (RenderContext | CommitContext)) !== NoContext) {
     // We're inside React, so it's fine to read the actual time.
@@ -103,17 +102,17 @@ export function requestUpdateLane(fiber: Fiber): Lane {
     !deferRenderPhaseUpdateToNextBatch &&
     (executionContext & RenderContext) !== NoContext &&
     workInProgressRootRenderLanes !== NoLanes
-  ) { 
+  ) {
     return pickArbitraryLane(workInProgressRootRenderLanes);
   }
 
   const isTransition = requestCurrentTransition() !== NoTransition;
-  if (isTransition) {  
-    if (currentEventTransitionLane === NoLane) { 
+  if (isTransition) {
+    if (currentEventTransitionLane === NoLane) {
       currentEventTransitionLane = claimNextTransitionLane();
     }
     return currentEventTransitionLane;
-  } 
+  }
   const updateLane: Lane = (getCurrentUpdatePriority(): any);
   if (updateLane !== NoLane) {
     return updateLane;
@@ -130,7 +129,6 @@ export function requestUpdateLane(fiber: Fiber): Lane {
 }
 ```
 
-
 # 4.react-reconciler/src/ReactFiberWorkLoop.old.js
 
 ```js
@@ -138,8 +136,8 @@ export function scheduleUpdateOnFiber(
   root: FiberRoot,
   fiber: Fiber,
   lane: Lane,
-  eventTime: number,
-) { 
+  eventTime: number
+) {
   // Mark that the root has a pending update.
   markRootUpdated(root, lane, eventTime);
 
@@ -157,7 +155,7 @@ export function scheduleUpdateOnFiber(
     // Track lanes that were updated during the render phase
     workInProgressRootRenderPhaseUpdatedLanes = mergeLanes(
       workInProgressRootRenderPhaseUpdatedLanes,
-      lane,
+      lane
     );
   } else {
     // This is a normal update, scheduled from outside the render phase. For
@@ -179,8 +177,8 @@ export function scheduleUpdateOnFiber(
           let current = fiber;
           while (current !== null) {
             if (current.tag === Profiler) {
-              const {id, onNestedUpdateScheduled} = current.memoizedProps;
-              if (typeof onNestedUpdateScheduled === 'function') {
+              const { id, onNestedUpdateScheduled } = current.memoizedProps;
+              if (typeof onNestedUpdateScheduled === "function") {
                 onNestedUpdateScheduled(id);
               }
             }
@@ -213,7 +211,7 @@ export function scheduleUpdateOnFiber(
       ) {
         workInProgressRootInterleavedUpdatedLanes = mergeLanes(
           workInProgressRootInterleavedUpdatedLanes,
-          lane,
+          lane
         );
       }
       if (workInProgressRootExitStatus === RootSuspendedWithDelay) {
@@ -245,7 +243,6 @@ export function scheduleUpdateOnFiber(
     }
   }
 }
-
 ```
 
 # 5.react-reconciler/src/ReactFiberWorkLoop.old.js
@@ -261,7 +258,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   // Determine the next lanes to work on, and their priority.
   const nextLanes = getNextLanes(
     root,
-    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
+    root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes
   );
 
   if (nextLanes === NoLanes) {
@@ -299,7 +296,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
         existingCallbackPriority !== SyncLane
       ) {
         console.error(
-          'Expected scheduled callback to exist. This error is likely caused by a bug in React. Please file an issue.',
+          "Expected scheduled callback to exist. This error is likely caused by a bug in React. Please file an issue."
         );
       }
     }
@@ -374,7 +371,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     }
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
-      performConcurrentWorkOnRoot.bind(null, root),
+      performConcurrentWorkOnRoot.bind(null, root)
     );
   }
 
@@ -386,9 +383,9 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 # 6.react-reconciler/src/ReactFiberWorkLoop.old.js
 
 ```js
-function scheduleCallback(priorityLevel, callback) { 
-    // In production, always call Scheduler. This function will be stripped out.
-    return Scheduler_scheduleCallback(priorityLevel, callback); 
+function scheduleCallback(priorityLevel, callback) {
+  // In production, always call Scheduler. This function will be stripped out.
+  return Scheduler_scheduleCallback(priorityLevel, callback);
 }
 ```
 
@@ -399,9 +396,9 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   var currentTime = getCurrentTime();
 
   var startTime;
-  if (typeof options === 'object' && options !== null) {
+  if (typeof options === "object" && options !== null) {
     var delay = options.delay;
-    if (typeof delay === 'number' && delay > 0) {
+    if (typeof delay === "number" && delay > 0) {
       startTime = currentTime + delay;
     } else {
       startTime = currentTime;
@@ -476,9 +473,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
 
   return newTask;
 }
-
 ```
-
 
 # 8.scheduler/src/fork/Scheduler.js
 
@@ -496,7 +491,7 @@ function requestHostCallback(callback) {
 
 ```js
 let schedulePerformWorkUntilDeadline;
-if (typeof localSetImmediate === 'function') {
+if (typeof localSetImmediate === "function") {
   // Node.js and old IE.
   // There's a few reasons for why we prefer setImmediate.
   //
@@ -511,7 +506,7 @@ if (typeof localSetImmediate === 'function') {
   schedulePerformWorkUntilDeadline = () => {
     localSetImmediate(performWorkUntilDeadline);
   };
-} else if (typeof MessageChannel !== 'undefined') {
+} else if (typeof MessageChannel !== "undefined") {
   // DOM and Worker environments.
   // We prefer MessageChannel because of the 4ms setTimeout clamping.
   const channel = new MessageChannel();
@@ -632,7 +627,7 @@ function workLoop(hasTimeRemaining, initialTime) {
       break;
     }
     const callback = currentTask.callback;
-    if (typeof callback === 'function') {
+    if (typeof callback === "function") {
       currentTask.callback = null;
       currentPriorityLevel = currentTask.priorityLevel;
       const didUserCallbackTimeout = currentTask.expirationTime <= currentTime;
@@ -641,7 +636,7 @@ function workLoop(hasTimeRemaining, initialTime) {
       }
       const continuationCallback = callback(didUserCallbackTimeout);
       currentTime = getCurrentTime();
-      if (typeof continuationCallback === 'function') {
+      if (typeof continuationCallback === "function") {
         currentTask.callback = continuationCallback;
         if (enableProfiling) {
           markTaskYield(currentTask, currentTime);
